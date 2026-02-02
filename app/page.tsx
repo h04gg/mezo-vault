@@ -1,21 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Info, ExternalLink, Clock, Lock, Wallet, ArrowUpCircle } from 'lucide-react';
+import { Info, ExternalLink, Clock, Lock, Wallet, ArrowUpCircle, FileText } from 'lucide-react';
 
 export default function VeBTCVeMEZOVaults() {
-  const [activeTab, setActiveTab] = useState('deposit');
-  const [depositTab, setDepositTab] = useState<'mezo' | 'vemezo'>('mezo');
-  const [nftTab, setNftTab] = useState<'available' | 'delegated'>('available');
+  const [activeTab, setActiveTab] = useState<'deposit' | 'withdraw' | 'claim'>('deposit');
+  const [depositType, setDepositType] = useState<'mezo' | 'vemezo'>('mezo');
 
   // MEZO deposit states
   const [depositAmount, setDepositAmount] = useState('');
   const [lockDuration, setLockDuration] = useState(4);
 
-  // veMEZO NFT selection
+  // NFT selection
   const [selectedNFTs, setSelectedNFTs] = useState<Set<string>>(new Set());
-
-  // Withdraw NFT selection
   const [selectedWithdrawNFTs, setSelectedWithdrawNFTs] = useState<Set<string>>(new Set());
 
   const numericDeposit = Number(depositAmount || 0);
@@ -40,7 +37,7 @@ export default function VeBTCVeMEZOVaults() {
       amount: '30,000',
       unlockDate: '2026-12-20',
       votingPower: '18,750',
-      status: 'delegated',
+      status: 'deposited',
       lockTime: '2 years',
       remainingTime: '0.9 years'
     },
@@ -56,20 +53,20 @@ export default function VeBTCVeMEZOVaults() {
   ];
 
   const availableNFTs = userNFTs.filter(nft => nft.status === 'available');
-  const delegatedNFTs = userNFTs.filter(nft => nft.status === 'delegated');
+  const depositedNFTs = userNFTs.filter(nft => nft.status === 'deposited');
 
   const pendingRewards = {
     total: '170.70'
   };
 
   const historyData = [
-    { date: '2026-01-28', type: 'Delegate NFT', from: '#1234', amount: '25,000', txHash: '0x1234...5678' },
+    { date: '2026-01-28', type: 'Deposit NFT', from: '#1234', amount: '25,000', txHash: '0x1234...5678' },
     { date: '2026-01-25', type: 'Claim Rewards', from: 'Vault', amount: '98.50', txHash: '0xabcd...efgh' },
-    { date: '2026-01-20', type: 'Delegate NFT', from: '#5678', amount: '30,000', txHash: '0x9876...5432' }
+    { date: '2026-01-20', type: 'Deposit NFT', from: '#5678', amount: '30,000', txHash: '0x9876...5432' }
   ];
 
   const handlePercentageClick = (percentage: number) => {
-    const balance = 1000; // Mock balance
+    const balance = 1000;
     setDepositAmount((balance * percentage / 100).toString());
   };
 
@@ -115,36 +112,40 @@ export default function VeBTCVeMEZOVaults() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Main Tabs */}
+          {/* Left Column - Main Content */}
           <div className="lg:col-span-2">
             <div className="bg-[#1a1a1a] border border-gray-700 rounded-2xl overflow-hidden shadow-xl">
-              {/* Main Tabs */}
+              
+              {/* Main Tabs - 3 tabs only */}
               <div className="border-b border-gray-700">
-                <div className="flex">
+                <div className="grid grid-cols-3">
                   <button
                     onClick={() => setActiveTab('deposit')}
-                    className={`flex-1 px-6 py-4 font-semibold transition-all ${activeTab === 'deposit'
+                    className={`px-6 py-4 font-semibold transition-all ${
+                      activeTab === 'deposit'
                         ? 'text-white bg-purple-600/10 border-b-2 border-purple-500'
-                        : 'text-gray-300 hover:text-white hover:bg-gray-800/50'
-                      }`}
+                        : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                    }`}
                   >
-                    Deposit 
+                    Deposit
                   </button>
                   <button
                     onClick={() => setActiveTab('withdraw')}
-                    className={`flex-1 px-6 py-4 font-semibold transition-all ${activeTab === 'withdraw'
+                    className={`px-6 py-4 font-semibold transition-all ${
+                      activeTab === 'withdraw'
                         ? 'text-white bg-purple-600/10 border-b-2 border-purple-500'
-                        : 'text-gray-300 hover:text-white hover:bg-gray-800/50'
-                      }`}
+                        : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                    }`}
                   >
                     Withdraw
                   </button>
                   <button
                     onClick={() => setActiveTab('claim')}
-                    className={`flex-1 px-6 py-4 font-semibold transition-all ${activeTab === 'claim'
+                    className={`px-6 py-4 font-semibold transition-all ${
+                      activeTab === 'claim'
                         ? 'text-white bg-purple-600/10 border-b-2 border-purple-500'
-                        : 'text-gray-300 hover:text-white hover:bg-gray-800/50'
-                      }`}
+                        : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                    }`}
                   >
                     Claim Rewards
                   </button>
@@ -153,54 +154,53 @@ export default function VeBTCVeMEZOVaults() {
 
               {/* Tab Content */}
               <div className="p-6">
-                {/* Deposit Tab */}
+                
+                {/* DEPOSIT TAB */}
                 {activeTab === 'deposit' && (
                   <div className="space-y-6">
-                    {/* Sub Tabs for MEZO / veMEZO */}
-                    <div className="flex gap-2 bg-[#0f0f0f] border border-gray-600 rounded-lg p-1">
+                    
+                    {/* Toggle buttons - Deposit MEZO vs Deposit veMEZO NFTs */}
+                    <div className="grid grid-cols-2 gap-3">
                       <button
-                        onClick={() => setDepositTab('mezo')}
-                        className={`flex-1 px-4 py-3 rounded-md text-sm font-semibold transition-all ${depositTab === 'mezo'
+                        onClick={() => setDepositType('mezo')}
+                        className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold transition-all ${
+                          depositType === 'mezo'
                             ? 'bg-purple-600 text-white shadow-lg'
-                            : 'text-gray-400 hover:text-white'
-                          }`}
+                            : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+                        }`}
                       >
-                        <div className="flex items-center justify-center gap-2">
-                          <Wallet className="w-4 h-4" />
-                          <span>Deposit MEZO</span>
-                        </div>
+                        <FileText className="w-4 h-4" />
+                        Deposit MEZO
                       </button>
                       <button
-                        onClick={() => setDepositTab('vemezo')}
-                        className={`flex-1 px-4 py-3 rounded-md text-sm font-semibold transition-all ${depositTab === 'vemezo'
+                        onClick={() => setDepositType('vemezo')}
+                        className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-semibold transition-all ${
+                          depositType === 'vemezo'
                             ? 'bg-purple-600 text-white shadow-lg'
-                            : 'text-gray-400 hover:text-white'
-                          }`}
+                            : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+                        }`}
                       >
-                        <div className="flex items-center justify-center gap-2">
-                          <Lock className="w-4 h-4" />
-                          <span>Deposit veMEZO NFTs</span>
-                        </div>
+                        <Lock className="w-4 h-4" />
+                        Deposit veMEZO NFTs
                       </button>
                     </div>
 
-                    {/* MEZO Deposit Content */}
-                    {depositTab === 'mezo' && (
+                    {/* MEZO Deposit Form */}
+                    {depositType === 'mezo' && (
                       <div className="space-y-6">
-                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
                           <div className="flex items-start gap-3">
                             <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
                             <div className="text-sm text-blue-200">
-                              <span className="font-semibold text-white">Lock MEZO:</span> Create a new veMEZO NFT by locking MEZO tokens.
-                              The vault will automatically vote this NFT for best rewards.
+                              Lock MEZO to create a veMEZO NFT. The vault will manage voting for optimal rewards.
                             </div>
                           </div>
                         </div>
 
                         <div>
                           <div className="flex items-center justify-between mb-3">
-                            <label className="text-sm text-gray-300 font-medium">MEZO Amount to Lock</label>
-                            <span className="text-xs text-gray-400">Available: - MEZO</span>
+                            <label className="text-sm text-gray-300 font-medium">Amount to Lock</label>
+                            <span className="text-xs text-gray-400">Available: 1,000 MEZO</span>
                           </div>
                           <div className="bg-[#0f0f0f] border border-gray-600 rounded-lg p-4 hover:border-purple-500/50 transition-colors">
                             <div className="flex items-center justify-between mb-4">
@@ -218,13 +218,12 @@ export default function VeBTCVeMEZOVaults() {
                                 <span className="font-semibold">MEZO</span>
                               </div>
                             </div>
-                            <div className="text-sm text-gray-400 mb-3">~$0</div>
                             <div className="flex gap-2">
                               {[25, 50, 75, 100].map(percent => (
                                 <button
                                   key={percent}
                                   onClick={() => handlePercentageClick(percent)}
-                                  className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 py-2 rounded text-sm font-semibold transition-all hover:border-purple-500/50"
+                                  className="flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 py-2 rounded text-sm font-semibold transition-all"
                                 >
                                   {percent}%
                                 </button>
@@ -235,7 +234,7 @@ export default function VeBTCVeMEZOVaults() {
 
                         <div>
                           <label className="text-sm text-gray-300 font-medium mb-3 block">Lock Duration</label>
-                          <div className="bg-[#0f0f0f] border border-gray-600 rounded-lg p-4 hover:border-purple-500/50 transition-colors">
+                          <div className="bg-[#0f0f0f] border border-gray-600 rounded-lg p-4">
                             <select
                               value={lockDuration}
                               onChange={(e) => setLockDuration(Number(e.target.value))}
@@ -247,291 +246,191 @@ export default function VeBTCVeMEZOVaults() {
                               <option value={4}>4 years</option>
                             </select>
                           </div>
-                          <div className="text-xs text-gray-400 mt-2">
-                            Longer lock = Higher voting power & rewards
-                          </div>
                         </div>
 
                         <div className="bg-[#0f0f0f] border border-gray-600 rounded-lg p-4">
-                          <div className="text-sm text-gray-300 font-medium mb-3">
-                            You will receive veMEZO NFT
+                          <div className="text-sm text-gray-300 font-medium mb-3">Estimated Voting Power</div>
+                          <div className="text-3xl font-bold text-purple-400">
+                            {estimatedVotingPower.toLocaleString()}
                           </div>
-                          <div className="flex justify-between items-center mb-2">
-                            <div className="text-sm text-gray-400">
-                              {depositAmount || 0} MEZO · Unlock in {lockDuration} years
-                            </div>
-                            <div className="text-xl font-bold text-purple-400">
-                              {estimatedVotingPower.toLocaleString()}
-                            </div>
-                          </div>
-                          <div className="flex justify-between items-center text-xs text-gray-500">
-                            <span>Estimated Voting Power</span>
-                            <span>MEZO × ({lockDuration} / 4 years)</span>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {depositAmount || 0} MEZO × ({lockDuration} / 4 years)
                           </div>
                         </div>
 
                         <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
-                          <div className="text-sm font-semibold mb-3 text-gray-200">Estimated Earning</div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-300">APY</span>
-                              <span className="text-green-400 font-semibold text-base">{vaultStats.apy}%</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-300">Est. Annual Reward</span>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-white">0</span>
-                                <span className="text-gray-400">(~$0)</span>
-                              </div>
-                            </div>
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="text-gray-300">Estimated APY</span>
+                            <span className="text-green-400 font-semibold text-lg">{vaultStats.apy}%</span>
                           </div>
                         </div>
 
-                        <button className="w-full bg-purple-600 hover:bg-purple-500 py-4 rounded-lg font-semibold text-lg transition-all shadow-lg hover:shadow-purple-500/50">
+                        <button className="w-full bg-purple-600 hover:bg-purple-500 py-4 rounded-lg font-semibold text-lg transition-all shadow-lg">
                           Lock MEZO & Create NFT
                         </button>
                       </div>
                     )}
 
-                    {/* veMEZO NFTs Content */}
-                    {depositTab === 'vemezo' && (
+                    {/* veMEZO NFTs Deposit - CHỈ HIỂN THỊ AVAILABLE */}
+                    {depositType === 'vemezo' && (
                       <div className="space-y-4">
                         
-
-                        {/* NFT Status Tabs */}
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setNftTab('available')}
-                            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${nftTab === 'available'
-                                ? 'bg-purple-600 text-white shadow-md'
-                                : 'bg-gray-800 text-gray-300 hover:text-white'
-                              }`}
-                          >
-                            Available ({availableNFTs.length})
-                          </button>
-                          <button
-                            onClick={() => setNftTab('delegated')}
-                            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${nftTab === 'delegated'
-                                ? 'bg-green-600 text-white shadow-md'
-                                : 'bg-gray-800 text-gray-300 hover:text-white'
-                              }`}
-                          >
-                            Deposited ({delegatedNFTs.length})
-                          </button>
+                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                            <div className="text-sm text-blue-200">
+                              Select your veMEZO NFTs to deposit into the vault for automated voting and rewards.
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Available NFTs */}
-                        {nftTab === 'available' && (
-                          <div className="space-y-3">
-                            {availableNFTs.length > 0 ? (
-                              <>
-                                {selectedNFTs.size > 0 && (
-                                  <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
-                                    <div className="text-sm text-purple-200">
-                                      <span className="font-semibold">{selectedNFTs.size} NFT{selectedNFTs.size > 1 ? 's' : ''} selected</span> -
-                                      Ready to deposit to vault
-                                    </div>
-                                  </div>
-                                )}
-
-                                {availableNFTs.map((nft) => (
-                                  <div
-                                    key={nft.id}
-                                    onClick={() => toggleNFTSelection(nft.id)}
-                                    className={`border rounded-lg p-4 transition-all cursor-pointer ${selectedNFTs.has(nft.id)
-                                        ? 'border-purple-500 bg-purple-500/10 shadow-lg shadow-purple-500/20'
-                                        : 'border-gray-600 bg-[#0f0f0f] hover:border-purple-500/50'
-                                      }`}
-                                  >
-                                    <div className="flex items-start justify-between mb-3">
-                                      <div className="flex items-center gap-3">
-                                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center shadow-lg ${selectedNFTs.has(nft.id)
-                                            ? 'bg-purple-600'
-                                            : 'bg-gradient-to-br from-purple-600 to-blue-600'
-                                          }`}>
-                                          <span className="font-bold">{nft.id}</span>
-                                        </div>
-                                        <div>
-                                          <div className="font-bold text-lg text-white">{nft.amount} MEZO</div>
-                                          <div className="text-xs text-gray-400">Locked for {nft.lockTime}</div>
-                                        </div>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${selectedNFTs.has(nft.id)
-                                            ? 'bg-purple-600 border-purple-600'
-                                            : 'border-gray-600'
-                                          }`}>
-                                          {selectedNFTs.has(nft.id) && (
-                                            <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path d="M5 13l4 4L19 7"></path>
-                                            </svg>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4 pt-3 border-t border-gray-700">
-                                      <div>
-                                        <div className="text-xs text-gray-400 mb-1">Voting Power</div>
-                                        <div className="font-semibold text-purple-400">{nft.votingPower}</div>
-                                      </div>
-                                      <div>
-                                        <div className="text-xs text-gray-400 mb-1">Remaining</div>
-                                        <div className="font-semibold text-white">{nft.remainingTime}</div>
-                                      </div>
-                                      <div>
-                                        <div className="text-xs text-gray-400 mb-1">Unlock Date</div>
-                                        <div className="font-semibold text-sm text-white">{nft.unlockDate}</div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-
-                                <button
-                                  disabled={selectedNFTs.size === 0}
-                                  className="w-full bg-purple-600 hover:bg-purple-500 py-4 rounded-lg font-semibold text-lg transition-all shadow-lg hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  Deposit {selectedNFTs.size > 0 ? `${selectedNFTs.size} NFT${selectedNFTs.size > 1 ? 's' : ''}` : 'Selected NFTs'}
-                                </button>
-                              </>
-                            ) : (
-                              <div className="text-center py-12 text-gray-400">
-                                <Lock className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                                <div className="text-sm">No available veMEZO NFTs</div>
-                                <div className="text-xs mt-1">Lock MEZO to create NFTs first</div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Delegated NFTs */}
-                        {nftTab === 'delegated' && (
-                          <div className="space-y-3">
-                            {delegatedNFTs.length > 0 ? (
-                              delegatedNFTs.map((nft) => (
-                                <div
-                                  key={nft.id}
-                                  className="border border-green-500/50 bg-green-500/10 rounded-lg p-4"
-                                >
-                                  <div className="flex items-start justify-between mb-3">
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg">
-                                        <span className="font-bold">{nft.id}</span>
-                                      </div>
-                                      <div>
-                                        <div className="font-bold text-lg text-white">{nft.amount} MEZO</div>
-                                        <div className="text-xs text-gray-400">Locked for {nft.lockTime}</div>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-green-400 text-sm font-semibold">
-                                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                                      Active
-                                    </div>
-                                  </div>
-
-                                  <div className="grid grid-cols-3 gap-4 pt-3 border-t border-gray-700">
-                                    <div>
-                                      <div className="text-xs text-gray-400 mb-1">Voting Power</div>
-                                      <div className="font-semibold text-green-400">{nft.votingPower}</div>
-                                    </div>
-                                    <div>
-                                      <div className="text-xs text-gray-400 mb-1">Remaining</div>
-                                      <div className="font-semibold text-white">{nft.remainingTime}</div>
-                                    </div>
-                                    <div>
-                                      <div className="text-xs text-gray-400 mb-1">Unlock Date</div>
-                                      <div className="font-semibold text-sm text-white">{nft.unlockDate}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="text-center py-12 text-gray-400">
-                                <Lock className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                                <div className="text-sm">No delegated NFTs</div>
-                                <div className="text-xs mt-1">Delegate your NFTs to start earning</div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Withdraw Tab */}
-                {activeTab === 'withdraw' && (
-                  <div className="space-y-6">
-                    <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
-                      <div className="flex items-start gap-3">
-                        <ArrowUpCircle className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
-                        <div className="text-sm text-orange-200">
-                          <span className="font-semibold text-white">Undelegate NFTs:</span> Select delegated NFTs to withdraw from the vault.
-                          You will stop earning rewards after undelegating.
-                        </div>
-                      </div>
-                    </div>
-
-                    {delegatedNFTs.length > 0 ? (
-                      <>
-                        {selectedWithdrawNFTs.size > 0 && (
-                          <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
-                            <div className="text-sm text-orange-200">
-                              <span className="font-semibold">{selectedWithdrawNFTs.size} NFT{selectedWithdrawNFTs.size > 1 ? 's' : ''} selected</span> -
-                              Ready to undelegate from vault
+                        {selectedNFTs.size > 0 && (
+                          <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
+                            <div className="text-sm text-purple-200">
+                              <span className="font-semibold">{selectedNFTs.size} NFT{selectedNFTs.size > 1 ? 's' : ''} selected</span> - Ready to deposit
                             </div>
                           </div>
                         )}
 
                         <div className="space-y-3">
-                          {delegatedNFTs.map((nft) => (
+                          {availableNFTs.length > 0 ? (
+                            <>
+                              {availableNFTs.map((nft) => (
+                                <div
+                                  key={nft.id}
+                                  onClick={() => toggleNFTSelection(nft.id)}
+                                  className={`border rounded-lg p-4 transition-all cursor-pointer ${
+                                    selectedNFTs.has(nft.id)
+                                      ? 'border-purple-500 bg-purple-500/10 shadow-lg shadow-purple-500/20'
+                                      : 'border-gray-600 bg-[#0f0f0f] hover:border-purple-500/50'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-3">
+                                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center shadow-lg ${
+                                        selectedNFTs.has(nft.id) ? 'bg-purple-600' : 'bg-gradient-to-br from-purple-600 to-blue-600'
+                                      }`}>
+                                        <span className="font-bold">{nft.id}</span>
+                                      </div>
+                                      <div>
+                                        <div className="font-bold text-white">{nft.amount} MEZO</div>
+                                        <div className="text-xs text-gray-400">{nft.lockTime} lock</div>
+                                      </div>
+                                    </div>
+                                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                      selectedNFTs.has(nft.id) ? 'bg-purple-600 border-purple-600' : 'border-gray-600'
+                                    }`}>
+                                      {selectedNFTs.has(nft.id) && (
+                                        <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-3 pt-3 border-t border-gray-700 text-xs">
+                                    <div>
+                                      <div className="text-gray-400 mb-1">Voting Power</div>
+                                      <div className="font-semibold text-purple-400">{nft.votingPower}</div>
+                                    </div>
+                                    <div>
+                                      <div className="text-gray-400 mb-1">Remaining</div>
+                                      <div className="font-semibold">{nft.remainingTime}</div>
+                                    </div>
+                                    <div>
+                                      <div className="text-gray-400 mb-1">Unlock</div>
+                                      <div className="font-semibold text-xs">{nft.unlockDate}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+
+                              <button
+                                disabled={selectedNFTs.size === 0}
+                                className="w-full bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed py-4 rounded-lg font-semibold text-lg transition-all shadow-lg"
+                              >
+                                Deposit {selectedNFTs.size > 0 ? `${selectedNFTs.size} NFT${selectedNFTs.size > 1 ? 's' : ''}` : 'Selected NFTs'}
+                              </button>
+                            </>
+                          ) : (
+                            <div className="text-center py-12 text-gray-400">
+                              <Lock className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                              <div className="text-sm">No available veMEZO NFTs</div>
+                              <div className="text-xs mt-1">Lock MEZO first to create NFTs</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* WITHDRAW TAB */}
+                {activeTab === 'withdraw' && (
+                  <div className="space-y-6">
+                    <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <ArrowUpCircle className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-orange-200">
+                          Select deposited NFTs to withdraw from the vault. Pending rewards will be automatically claimed.
+                        </div>
+                      </div>
+                    </div>
+
+                    {depositedNFTs.length > 0 ? (
+                      <>
+                        {selectedWithdrawNFTs.size > 0 && (
+                          <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
+                            <div className="text-sm text-orange-200">
+                              <span className="font-semibold">{selectedWithdrawNFTs.size} NFT{selectedWithdrawNFTs.size > 1 ? 's' : ''} selected</span> - Ready to withdraw
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="space-y-3">
+                          {depositedNFTs.map((nft) => (
                             <div
                               key={nft.id}
                               onClick={() => toggleWithdrawNFTSelection(nft.id)}
-                              className={`border rounded-lg p-4 transition-all cursor-pointer ${selectedWithdrawNFTs.has(nft.id)
+                              className={`border rounded-lg p-4 transition-all cursor-pointer ${
+                                selectedWithdrawNFTs.has(nft.id)
                                   ? 'border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/20'
                                   : 'border-green-500/50 bg-green-500/10 hover:border-orange-500/50'
-                                }`}
+                              }`}
                             >
-                              <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-3">
-                                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center shadow-lg ${selectedWithdrawNFTs.has(nft.id)
-                                      ? 'bg-orange-600'
-                                      : 'bg-gradient-to-br from-green-600 to-emerald-600'
-                                    }`}>
+                                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center shadow-lg ${
+                                    selectedWithdrawNFTs.has(nft.id) ? 'bg-orange-600' : 'bg-gradient-to-br from-green-600 to-emerald-600'
+                                  }`}>
                                     <span className="font-bold">{nft.id}</span>
                                   </div>
                                   <div>
-                                    <div className="font-bold text-lg text-white">{nft.amount} MEZO</div>
-                                    <div className="text-xs text-gray-400">Locked for {nft.lockTime}</div>
+                                    <div className="font-bold text-white">{nft.amount} MEZO</div>
+                                    <div className="text-xs text-gray-400">{nft.lockTime} lock</div>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${selectedWithdrawNFTs.has(nft.id)
-                                      ? 'bg-orange-600 border-orange-600'
-                                      : 'border-gray-600'
-                                    }`}>
-                                    {selectedWithdrawNFTs.has(nft.id) && (
-                                      <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path d="M5 13l4 4L19 7"></path>
-                                      </svg>
-                                    )}
-                                  </div>
+                                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                  selectedWithdrawNFTs.has(nft.id) ? 'bg-orange-600 border-orange-600' : 'border-gray-600'
+                                }`}>
+                                  {selectedWithdrawNFTs.has(nft.id) && (
+                                    <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                  )}
                                 </div>
                               </div>
-
-                              <div className="grid grid-cols-3 gap-4 pt-3 border-t border-gray-700">
+                              <div className="grid grid-cols-3 gap-3 pt-3 border-t border-gray-700 text-xs">
                                 <div>
-                                  <div className="text-xs text-gray-400 mb-1">Voting Power</div>
+                                  <div className="text-gray-400 mb-1">Voting Power</div>
                                   <div className="font-semibold text-purple-400">{nft.votingPower}</div>
                                 </div>
                                 <div>
-                                  <div className="text-xs text-gray-400 mb-1">Remaining</div>
-                                  <div className="font-semibold text-white">{nft.remainingTime}</div>
+                                  <div className="text-gray-400 mb-1">Remaining</div>
+                                  <div className="font-semibold">{nft.remainingTime}</div>
                                 </div>
                                 <div>
-                                  <div className="text-xs text-gray-400 mb-1">Unlock Date</div>
-                                  <div className="font-semibold text-sm text-white">{nft.unlockDate}</div>
+                                  <div className="text-gray-400 mb-1">Unlock</div>
+                                  <div className="font-semibold text-xs">{nft.unlockDate}</div>
                                 </div>
                               </div>
                             </div>
@@ -542,30 +441,29 @@ export default function VeBTCVeMEZOVaults() {
                           <div className="flex items-start gap-3">
                             <Info className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                             <div className="text-sm text-yellow-200">
-                              <span className="font-semibold text-white">Warning:</span> Undelegating will stop reward accumulation.
-                              Make sure to claim any pending rewards before undelegating.
+                              <span className="font-semibold text-white">Note:</span> Withdrawing will stop reward accumulation for these NFTs.
                             </div>
                           </div>
                         </div>
 
                         <button
                           disabled={selectedWithdrawNFTs.size === 0}
-                          className="w-full bg-orange-600 hover:bg-orange-500 py-4 rounded-lg font-semibold text-lg transition-all shadow-lg hover:shadow-orange-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full bg-orange-600 hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed py-4 rounded-lg font-semibold text-lg transition-all shadow-lg"
                         >
-                          Undelegate {selectedWithdrawNFTs.size > 0 ? `${selectedWithdrawNFTs.size} NFT${selectedWithdrawNFTs.size > 1 ? 's' : ''}` : 'Selected NFTs'}
+                          Withdraw {selectedWithdrawNFTs.size > 0 ? `${selectedWithdrawNFTs.size} NFT${selectedWithdrawNFTs.size > 1 ? 's' : ''}` : 'Selected NFTs'}
                         </button>
                       </>
                     ) : (
                       <div className="text-center py-12 text-gray-400">
                         <Lock className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                        <div className="text-sm">No delegated NFTs to withdraw</div>
-                        <div className="text-xs mt-1">Delegate NFTs first to start earning rewards</div>
+                        <div className="text-sm">No deposited NFTs</div>
+                        <div className="text-xs mt-1">Deposit NFTs first to start earning</div>
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* Claim Rewards Tab */}
+                {/* CLAIM REWARDS TAB */}
                 {activeTab === 'claim' && (
                   <div className="space-y-6">
                     <div className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 border border-purple-500/50 rounded-lg p-6 shadow-xl">
@@ -608,12 +506,12 @@ export default function VeBTCVeMEZOVaults() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
-                        <div className="text-xs text-gray-300 mb-2">Your APR</div>
+                        <div className="text-xs text-gray-300 mb-2">Your APY</div>
                         <div className="text-2xl font-bold text-green-400">{vaultStats.apy}%</div>
                       </div>
                       <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
-                        <div className="text-xs text-gray-300 mb-2">Total Earned (All Time)</div>
-                        <div className="text-2xl font-bold text-white">450.75 MEZO</div>
+                        <div className="text-xs text-gray-300 mb-2">Total Earned</div>
+                        <div className="text-2xl font-bold text-white">450.75</div>
                       </div>
                     </div>
 
@@ -621,8 +519,7 @@ export default function VeBTCVeMEZOVaults() {
                       <div className="flex items-start gap-3">
                         <Clock className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
                         <div className="text-sm text-blue-200">
-                          <span className="font-semibold text-white">Next Epoch:</span> Rewards are distributed at the end of each epoch (~1 week).
-                          Pending rewards will become claimable after the current epoch ends.
+                          Rewards are distributed at the end of each epoch (~1 week). Current epoch ends in 3 days.
                         </div>
                       </div>
                     </div>
